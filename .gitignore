@@ -1,0 +1,14 @@
+# Explicit path budget: these generated paths add 0 bytes to the submission.
+# Required source, package-lock.json, public/ and dist/ remain included.
+# See README.md for the complete source/export/artifact budget.
+**/node_modules/
+**/.cache/
+**/.npm/
+**/npm-cache/
+**/.npm-cache/
+**/.pnpm-store/
+**/.yarn/cache/
+**/.vite/
+**/.vite-temp/
+**/*.tsbuildinfo
+test/scratch/
