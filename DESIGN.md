@@ -6,6 +6,8 @@ Squeeklings is a small Sepolia NFT app for Squeekchain’s community. A cream ca
 
 The single page follows the care cycle: hatch, visit your companion, preview growth, explore the nursery, then read the rules. At 390 CSS pixels the product, live on-chain context, and Hatch action appear on the first screen. `src/App.tsx` assembles the page; `src/styles.css` defines the system.
 
+Revision coverage: this CSP fix rebuilds the existing source without changing its design, markup, CSS, fonts or responsive rules. Rendered observations in this document describe the previously accepted design; they were not re-established in this revision because the browser runtimes could not launch. Current source/DOM review coverage and the unperformed 390px screenshot check are recorded in `artifacts/validation.md`.
+
 ## Colors
 
 Values are defined in `src/styles.css` using hex primitives and role tokens. This is a single light theme; the indigo time-machine panel is an intentional surface within that theme.
@@ -29,7 +31,7 @@ Values are defined in `src/styles.css` using hex primitives and role tokens. Thi
 | `--color-positive` / `--color-positive-bg` | `#3C6746` / `#E5EBD8` | Success, excited mood, running indicator |
 | `--color-error` / `--color-error-bg` | `#93422F` / `#FAE5D5` | Recoverable errors and hungry mood |
 
-Status always includes words, not just color. Buttons in the time machine use a gold focus outline; other controls use a 3px focus outline with a 4px offset. Forced-colors mode uses system `Highlight` and `ButtonText`. Actual measured contrast pairs and scan coverage are recorded in `artifacts/validation.md` and `artifacts/contrast.json`.
+Status always includes words, not just color. Buttons in the time machine use a gold focus outline; other controls use a 3px focus outline with a 4px offset. Forced-colors mode uses system `Highlight` and `ButtonText`. Source-token contrast calculations are recorded in `artifacts/contrast.json`; these are not rendered contrast measurements. Current review coverage is in `artifacts/validation.md`.
 
 ## Typography
 
