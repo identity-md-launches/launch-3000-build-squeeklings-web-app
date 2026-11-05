@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Eip1193Provider } from "ethers";
+import { getAddress, type Eip1193Provider } from "ethers";
 import {
   CHAIN_HEX,
   CHAIN_ID,
@@ -14,7 +14,7 @@ import {
   RPC_URLS,
   shortAddress,
 } from "./config";
-import { errorMessage, getEthers } from "./chain";
+import { errorMessage } from "./chain";
 import { Modal } from "./Modal";
 import { Icon } from "./icons";
 
@@ -130,7 +130,6 @@ export function WalletContext({ children }: { children: ReactNode }) {
       })) as string[];
       if (!accounts.length) return;
       const chainId = Number(await provider.request({ method: "eth_chainId" }));
-      const { getAddress } = await getEthers();
       setSession({ provider, name, address: getAddress(accounts[0]), chainId });
     } catch {
       rememberWallet(null);
@@ -174,12 +173,10 @@ export function WalletContext({ children }: { children: ReactNode }) {
         setSession(null);
         rememberWallet(null);
       } else
-        void getEthers().then(({ getAddress }) =>
-          setSession((current) =>
-            current?.provider === provider
-              ? { ...current, address: getAddress(accounts[0]) }
-              : current,
-          ),
+        setSession((current) =>
+          current?.provider === provider
+            ? { ...current, address: getAddress(accounts[0]) }
+            : current,
         );
     };
     const chainChanged = (...args: unknown[]) =>
@@ -224,7 +221,6 @@ export function WalletContext({ children }: { children: ReactNode }) {
         method: "eth_requestAccounts",
       })) as string[];
       if (!accounts.length) throw new Error("Wallet returned no account");
-      const { getAddress } = await getEthers();
       const connected = {
         provider,
         name,

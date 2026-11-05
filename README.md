@@ -23,7 +23,7 @@ To host the finished app, serve **the contents of `dist/`** from any static HTTP
 - [Verified source](https://eth-sepolia.blockscout.com/address/0xc42ce2d42684e7d7d5c29bf7fcc6fdf419c2771f?tab=contract).
 - Read RPC rotation: `https://ethereum-sepolia-rpc.publicnode.com`, `https://1rpc.io/sepolia`, `https://sepolia.gateway.tenderly.co`.
 - Physical hamster status: `https://api.squeekchain.com/v1/status`. ACTIVE means running; milli-RPM is divided by 1000 and displayed to one decimal place. API failures leave only on-chain block/round values.
-- ethers **6.13.5** is loaded from the pinned jsDelivr ES module URL in `src/config.ts`. The npm dev dependency supplies matching types; the runtime library is intentionally loaded from the CDN.
+- ethers **6.13.5** is imported statically (`Interface` in `src/chain.ts`, `getAddress` in `src/wallet.tsx`, `BrowserProvider` and `Contract` in `src/App.tsx`) and bundled by Vite. The host’s CSP is `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'`, so the app never loads a script from another origin. There is no CDN URL, `getEthers()` loader or remote `import()` in the source.
 
 The page polls `hamster()` every 30 seconds, also refreshing on return to the tab. NFT details come from `info()`, current art from `svgOf()`, previews from `previewSvg()`, and gallery IDs from `totalSupply()` plus `tokenByIndex()`. No balances, NFTs, activity metrics or metadata are fabricated. A read failure produces a recoverable error; previously read chain values are marked when refresh is delayed.
 
@@ -46,7 +46,7 @@ The nursery loads 24 entries per batch, newest first. Stage filters apply to loa
 | Path | Purpose |
 | --- | --- |
 | `src/config.ts` | Contract, ABI, chain, public sources, stage thresholds, types |
-| `src/chain.ts` | ethers loader, RPC queue/failover, reads, SVG cache/encoding, friendly errors |
+| `src/chain.ts` | Bundled ethers ABI interface, RPC queue/failover, reads, SVG cache/encoding, friendly errors |
 | `src/wallet.tsx` | EIP-6963/fallback discovery, Coinbase, phone links, account/network events |
 | `src/App.tsx` | Live header, hatch/feed flow, companion, time machine, rules and footer |
 | `src/Nursery.tsx` | Enumerated gallery, stage filters, pagination and token detail |
@@ -57,7 +57,15 @@ The nursery loads 24 entries per batch, newest first. Stage filters apply to loa
 | `DESIGN.md` | Final implemented typography, colors, components and responsive behavior |
 | `artifacts/validation.md` | Review coverage, findings, fixes, actual checks and limitations |
 
-## Validation performed
+## CSP fix: bundled ethers
+
+The live host sends `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'`. That blocked the old `import()` of ethers from cdn.jsdelivr.net, so no on-chain reads or wallet actions worked. The source now imports ethers statically from the npm package. `ETHERS_CDN` and `getEthers()` are gone. Design, copy, sections, RPC rotation and caching are unchanged.
+
+**Open question and decision.** The brief asked to move ethers from `devDependencies` to `dependencies` in `package.json`. This assignment’s network rules forbid edits to `package.json` and lockfiles, and the earlier request to make an exception got no answer. Where a request conflicts with a network rule, the rule wins. So `package.json` and `package-lock.json` stay as they are, and ethers 6.13.5 stays a pinned dev dependency. That does not change the result: `npm ci` installs dev dependencies, and Vite bundles whatever the source imports, whichever section the package is listed in. For a static export, the section only signals intent. Moving the entry is a one-line follow-up whenever the manifest may be edited.
+
+**Validation status for this change: not run.** No command could run in this job because every shell command failed before it started (“Sandbox is required but failed to initialize: Failed to create bridge sockets after 5 attempts”). So `npm ci`, `npm run typecheck`, `npm run build`, the taste probe and the browser checks did not run. **The committed `dist/` is still the previous export and still loads ethers from the CDN.** Before publishing, run `npm ci && npm run typecheck && npm run build`, commit the new `dist/`, and confirm the bundle has no `jsdelivr` string (`grep -r jsdelivr dist` should print nothing). A source search confirms that `src/` has no `jsdelivr`, `ETHERS_CDN`, `getEthers` or remote `import()` left. The deployed-site checks in the brief were not performed: header block/round, token #1 art in the hero and Nursery, time-machine redraw, wallet opening on Sepolia, and no CSP errors. The source edits were reviewed by reading only. They change imports and how ethers is obtained, not markup or styles, so the Better Interface review and `DESIGN.md` from the previous job still describe the interface.
+
+## Validation performed (previous job, CDN-based build)
 
 The production build and `tsc --noEmit` passed. Live reads returned real hamster state, token #1 details/art and all milestone previews. Chromium interaction validation passed at 320, 390, 768 and 1440 CSS pixels with no measured horizontal overflow, no application console errors, and no failed resources in the live run. At 390×844, the Hatch action and on-chain portrait both appear on the first screen.
 
@@ -65,7 +73,7 @@ The final checks include 8 live-page interaction assertions, 20 controlled walle
 
 Transaction tests used simulated EIP-1193 providers and controlled confirmations; **no real signing or mint/feed transaction was performed**. The live collection had one token during validation, so pagination beyond 24 and later feeding states were validated with test-only responses outside the shipped source/export. The runtime contains none of those fixtures.
 
-The provided browser launcher could not start because of an overlong Chromium socket path. A foreground Playwright harness inspected the actual export using Chromium headless shell; outbound responses were relayed through the machine’s permitted HTTP proxy without substituting chain data. WebKit could not launch because host libraries were missing. Physical wallet apps/passkeys, a screen reader, native 200% zoom and non-English variants were not verified. The app also depends on the public RPCs, status API and pinned ethers CDN being reachable.
+The provided browser launcher could not start because of an overlong Chromium socket path. A foreground Playwright harness inspected the actual export using Chromium headless shell; outbound responses were relayed through the machine’s permitted HTTP proxy without substituting chain data. WebKit could not launch because host libraries were missing. Physical wallet apps/passkeys, a screen reader, native 200% zoom and non-English variants were not verified. The app also depends on the public RPCs, status API and (in that earlier build) pinned ethers CDN being reachable.
 
 ## Explicit submission path budget
 

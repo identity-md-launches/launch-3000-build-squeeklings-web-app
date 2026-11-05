@@ -1,8 +1,9 @@
-import type { Interface, Result } from "ethers";
+// ethers is bundled by Vite. The host's CSP (script-src 'self') blocks scripts
+// from any other origin, so nothing here may load code from a CDN.
+import { Interface, type Result } from "ethers";
 import {
   ABI,
   CONTRACT,
-  ETHERS_CDN,
   RPC_URLS,
   STATUS_API,
   type Hamster,
@@ -10,20 +11,9 @@ import {
   type Measurement,
 } from "./config";
 
-let ethersModule: Promise<typeof import("ethers")> | undefined;
-export function getEthers() {
-  if (!ethersModule) {
-    ethersModule = import(/* @vite-ignore */ ETHERS_CDN).catch((error) => {
-      ethersModule = undefined;
-      throw error;
-    });
-  }
-  return ethersModule;
-}
-
-let abiInterface: Interface | undefined;
-async function getInterface() {
-  return (abiInterface ??= new (await getEthers()).Interface(ABI));
+const abiInterface = new Interface(ABI);
+function getInterface() {
+  return abiInterface;
 }
 
 // Every read, including heavy SVG calls and their retries, shares these four slots.
@@ -60,7 +50,7 @@ export async function read(
   method: string,
   args: readonly unknown[] = [],
 ): Promise<Result> {
-  const iface = await getInterface();
+  const iface = getInterface();
   const data = iface.encodeFunctionData(method, args);
   return queue.run(async () => {
     const start = preferredRpc;
@@ -234,7 +224,7 @@ export function errorMessage(error: unknown): string {
   const seen = new Set<object>();
   const collect = (value: unknown, depth = 0): string => {
     if (typeof value === "string") {
-      if (value.startsWith("0x08c379a0") && abiInterface) {
+      if (value.startsWith("0x08c379a0")) {
         try {
           return String(abiInterface.parseError(value)?.args[0] ?? value);
         } catch {

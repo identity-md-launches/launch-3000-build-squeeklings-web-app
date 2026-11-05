@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BrowserProvider, Contract } from "ethers";
 import {
   clearArtCache,
   errorMessage,
-  getEthers,
   read,
   readHamster,
   readMeasurement,
@@ -185,10 +185,9 @@ export default function App() {
       })) as string[];
       if (accounts[0]?.toLowerCase() !== selected.address.toLowerCase())
         throw new Error("Wallet account changed; reconnect your wallet.");
-      const ethers = await getEthers();
-      const provider = new ethers.BrowserProvider(selected.provider);
+      const provider = new BrowserProvider(selected.provider);
       const signer = await provider.getSigner(selected.address);
-      const contract = new ethers.Contract(CONTRACT, ABI, signer);
+      const contract = new Contract(CONTRACT, ABI, signer);
       const transaction =
         action === "hatch"
           ? await contract.hatch()

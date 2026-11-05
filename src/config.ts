@@ -4,8 +4,6 @@ export const CHAIN_HEX = "0xaa36a7";
 export const EXPLORER = "https://sepolia.etherscan.io";
 export const VERIFIED_SOURCE = `https://eth-sepolia.blockscout.com/address/${CONTRACT}?tab=contract`;
 export const STATUS_API = "https://api.squeekchain.com/v1/status";
-export const ETHERS_CDN =
-  "https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.min.js";
 export const RPC_URLS = [
   "https://ethereum-sepolia-rpc.publicnode.com",
   "https://1rpc.io/sepolia",
